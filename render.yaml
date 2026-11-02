@@ -1,41 +1,33 @@
-# Render Blueprint for the CareerCraft backend (Phase 9).
-# Render → New → Blueprint → pick this repo. Render reads this file, builds
-# backend/Dockerfile and asks you for every value marked "sync: false".
-# Secrets are never stored in this file.
+
+# Render Blueprint for CareerCraft backend
 services:
   - type: web
     name: careercraft-backend
     runtime: docker
     rootDir: backend
-    dockerfilePath: ./backend/Dockerfile
-    dockerContext: ./backend
-    plan: free            # 512 MB RAM - enough for this app; upgrade for no cold starts
-    region: singapore     # closest to India; can't be changed later
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    plan: free
+    region: singapore
     healthCheckPath: /api/health
     autoDeploy: true
     envVars:
-      # --- database (MySQL hosted elsewhere, e.g. Aiven or Railway - see PHASE9_GUIDE) ---
       - key: DB_URL
         sync: false
       - key: DB_USERNAME
         sync: false
       - key: DB_PASSWORD
         sync: false
-      # --- auth ---
       - key: JWT_SECRET
-        generateValue: true   # random base64 256-bit value, created once
+        generateValue: true
       - key: JWT_EXPIRATION_MS
         value: "86400000"
-      # --- your Vercel URL(s), comma-separated, no trailing slash ---
       - key: CORS_ALLOWED_ORIGINS
         sync: false
       - key: JPA_DDL_AUTO
         value: update
-      # Render is behind Cloudflare: read the real visitor IP from this header
-      # (used by the login / sign-up rate limits). Check it at /api/health.
       - key: REMOTE_IP_HEADER
         value: cf-connecting-ip
-      # --- AI (optional - AI features are disabled without a key) ---
       - key: GROK_API_KEY
         sync: false
       - key: GROK_MODEL
