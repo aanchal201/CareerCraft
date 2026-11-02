@@ -1,0 +1,54 @@
+.avatar-uploader {
+  display: flex;
+  align-items: center;
+  gap: var(--space-5);
+}
+
+.avatar-uploader__preview {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.avatar-uploader__preview .avatar {
+  box-shadow: 0 0 0 4px var(--color-surface), 0 0 0 5px var(--color-border);
+}
+
+.avatar-uploader__busy {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.75);
+  color: var(--color-primary);
+}
+
+.avatar-uploader__title {
+  font-weight: 700;
+}
+
+.avatar-uploader__hint {
+  margin: 2px 0 var(--space-3);
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+}
+
+.avatar-uploader__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.avatar-uploader__error {
+  margin-top: var(--space-2);
+  font-size: var(--text-xs);
+  font-weight: 500;
+  color: var(--color-danger);
+}
+
+@media (max-width: 480px) {
+  .avatar-uploader {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}

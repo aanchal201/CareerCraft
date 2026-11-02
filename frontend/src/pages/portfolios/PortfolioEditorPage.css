@@ -1,0 +1,139 @@
+/* Layout of the portfolio editor. Toolbar, section cards and list editor
+   styles are shared with the resume editor (ResumeEditorPage.css). */
+.portfolio-editor {
+  --editor-toolbar-height: 60px;
+}
+
+.portfolio-editor__body {
+  display: grid;
+  grid-template-columns: minmax(360px, 440px) minmax(0, 1fr);
+  align-items: start;
+  gap: var(--space-6);
+}
+
+.portfolio-editor__panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  min-width: 0;
+}
+
+.portfolio-editor__tabs {
+  display: flex;
+  gap: var(--space-1);
+  padding: 4px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+}
+
+.portfolio-editor__tabs button {
+  display: inline-flex;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  height: 36px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--color-text-secondary);
+}
+
+.portfolio-editor__tabs button.is-active {
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
+}
+
+.portfolio-editor__sections {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.portfolio-editor__ai {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border: 1px dashed var(--color-border-strong);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+}
+
+.portfolio-editor__ai div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  font-size: var(--text-sm);
+}
+
+.portfolio-editor__ai span {
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+}
+
+.portfolio-editor__ai .btn {
+  flex-shrink: 0;
+}
+
+.portfolio-editor__note {
+  margin-top: var(--space-4);
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+}
+
+.portfolio-editor__preview {
+  position: sticky;
+  top: calc(var(--topbar-height) + var(--editor-toolbar-height) + var(--space-6));
+  min-width: 0;
+}
+
+.portfolio-editor__preview .pf-preview {
+  height: calc(100vh - var(--topbar-height) - var(--editor-toolbar-height) - var(--space-12));
+  min-height: 420px;
+}
+
+/* the Edit / Preview switch only shows on smaller screens */
+.portfolio-editor__switch {
+  display: none;
+}
+
+@media (max-width: 1180px) {
+  .portfolio-editor__body {
+    grid-template-columns: 1fr;
+  }
+
+  .portfolio-editor__switch {
+    display: flex;
+  }
+
+  .portfolio-editor--edit .portfolio-editor__preview,
+  .portfolio-editor--preview .portfolio-editor__panel {
+    display: none;
+  }
+
+  .portfolio-editor__preview {
+    position: static;
+  }
+
+  .portfolio-editor__preview .pf-preview {
+    height: 75vh;
+  }
+}
+
+/* the toolbar holds more buttons since Phase 7 - let them wrap on narrow screens */
+.portfolio-editor .editor-toolbar__right {
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+@media (max-width: 640px) {
+  .portfolio-editor .pf-pill {
+    display: none;
+  }
+}

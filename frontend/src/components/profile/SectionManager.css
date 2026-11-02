@@ -1,0 +1,5 @@
+.section-manager__list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}

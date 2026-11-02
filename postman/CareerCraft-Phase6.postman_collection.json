@@ -1,0 +1,117 @@
+{
+  "info": {
+    "name": "CareerCraft - Phase 6 (Portfolio Builder)",
+    "description": "Run in order. Step 1 logs in (edit the body if your account differs). {{portfolioId}} and {{copyId}} are saved automatically.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:8080/api" },
+    { "key": "token", "value": "" },
+    { "key": "portfolioId", "value": "" },
+    { "key": "copyId", "value": "" }
+  ],
+  "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }] },
+  "item": [
+    {
+      "name": "1. Login (saves token)",
+      "auth": { "type": "noauth" },
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+        "pm.collectionVariables.set('token', pm.response.json().accessToken);"
+      ] } }],
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": "{{baseUrl}}/auth/login",
+        "body": { "mode": "raw", "raw": "{\n  \"email\": \"asha@example.com\",\n  \"password\": \"secret123\"\n}" }
+      }
+    },
+    {
+      "name": "2. Create portfolio from profile (201)",
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "pm.test('Status is 201', () => pm.response.to.have.status(201));",
+        "const body = pm.response.json();",
+        "pm.test('7 sections', () => pm.expect(body.content.sections.length).to.eql(7));",
+        "pm.test('Default design', () => pm.expect(body.design.colorMode).to.eql('LIGHT'));",
+        "pm.collectionVariables.set('portfolioId', body.id);"
+      ] } }],
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": "{{baseUrl}}/portfolios",
+        "body": { "mode": "raw", "raw": "{\n  \"name\": \"Developer portfolio\",\n  \"templateId\": \"minimal\",\n  \"prefillFromProfile\": true\n}" }
+      }
+    },
+    {
+      "name": "3. Create with unknown template (400)",
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "pm.test('Status is 400', () => pm.response.to.have.status(400));"
+      ] } }],
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": "{{baseUrl}}/portfolios",
+        "body": { "mode": "raw", "raw": "{\n  \"name\": \"X\",\n  \"templateId\": \"neon\",\n  \"prefillFromProfile\": false\n}" }
+      }
+    },
+    {
+      "name": "4. Update design + content (200)",
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+        "const body = pm.response.json();",
+        "pm.test('Dark mode saved', () => pm.expect(body.design.colorMode).to.eql('DARK'));",
+        "pm.test('Project got an id', () => pm.expect(body.content.projects[0].id).to.be.a('string'));"
+      ] } }],
+      "request": {
+        "method": "PUT",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": "{{baseUrl}}/portfolios/{{portfolioId}}",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Developer portfolio\",\n  \"templateId\": \"sidebar\",\n  \"design\": {\n    \"primaryColor\": \"#7c3aed\",\n    \"colorMode\": \"DARK\",\n    \"fontPairing\": \"tech\",\n    \"heroAlign\": \"LEFT\",\n    \"projectLayout\": \"GRID\"\n  },\n  \"content\": {\n    \"hero\": {\n      \"name\": \"Asha Verma\",\n      \"headline\": \"Frontend developer\",\n      \"tagline\": \"I build fast, accessible React apps.\",\n      \"availability\": \"Open to work\",\n      \"ctaLabel\": \"Hire me\",\n      \"showAvatar\": true\n    },\n    \"about\": { \"text\": \"Final-year CS student who loves building products.\", \"location\": \"Mumbai\" },\n    \"skills\": [ { \"name\": \"React\", \"category\": \"Frontend\" }, { \"name\": \"Spring Boot\", \"category\": \"Backend\" } ],\n    \"projects\": [\n      {\n        \"name\": \"CareerCraft\",\n        \"description\": \"AI resume and portfolio builder.\",\n        \"technologies\": \"React, Spring Boot, MySQL\",\n        \"repoUrl\": \"https://github.com/ashaverma/careercraft\",\n        \"featured\": true\n      }\n    ],\n    \"contact\": { \"message\": \"Let's build something together!\", \"email\": \"asha@example.com\", \"github\": \"https://github.com/ashaverma\" }\n  }\n}"
+        }
+      }
+    },
+    {
+      "name": "5. Update with invalid color/link (400)",
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "pm.test('Status is 400', () => pm.response.to.have.status(400));"
+      ] } }],
+      "request": {
+        "method": "PUT",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": "{{baseUrl}}/portfolios/{{portfolioId}}",
+        "body": { "mode": "raw", "raw": "{\n  \"name\": \"X\",\n  \"templateId\": \"minimal\",\n  \"design\": { \"primaryColor\": \"purple\" },\n  \"content\": { \"projects\": [ { \"name\": \"P\", \"liveUrl\": \"my-site.com\" } ] }\n}" }
+      }
+    },
+    {
+      "name": "6. List portfolios (200)",
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "pm.test('Status is 200', () => pm.response.to.have.status(200));"
+      ] } }],
+      "request": { "method": "GET", "url": "{{baseUrl}}/portfolios" }
+    },
+    {
+      "name": "7. Duplicate (201)",
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "pm.test('Status is 201', () => pm.response.to.have.status(201));",
+        "pm.collectionVariables.set('copyId', pm.response.json().id);"
+      ] } }],
+      "request": { "method": "POST", "url": "{{baseUrl}}/portfolios/{{portfolioId}}/duplicate" }
+    },
+    {
+      "name": "8. Delete the copy (204)",
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "pm.test('Status is 204', () => pm.response.to.have.status(204));"
+      ] } }],
+      "request": { "method": "DELETE", "url": "{{baseUrl}}/portfolios/{{copyId}}" }
+    },
+    {
+      "name": "9. Get deleted copy (404)",
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "pm.test('Status is 404', () => pm.response.to.have.status(404));"
+      ] } }],
+      "request": { "method": "GET", "url": "{{baseUrl}}/portfolios/{{copyId}}" }
+    }
+  ]
+}

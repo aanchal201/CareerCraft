@@ -1,0 +1,43 @@
+/* The live portfolio page: the template fills the whole window. */
+.public-portfolio {
+  position: relative;
+  min-height: 100vh;
+  background: var(--color-surface);
+}
+
+.public-portfolio > .pf {
+  min-height: 100vh;
+}
+
+.public-portfolio--center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* small, unobtrusive credit in the corner */
+.public-portfolio__badge {
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  z-index: 10;
+  padding: 6px 12px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: 0 2px 8px rgba(15, 17, 21, 0.12);
+  font-size: 12px;
+  font-weight: 600;
+  color: #14181f;
+  text-decoration: none;
+}
+
+.public-portfolio__badge:hover {
+  background: #ffffff;
+}
+
+@media print {
+  .public-portfolio__badge {
+    display: none;
+  }
+}

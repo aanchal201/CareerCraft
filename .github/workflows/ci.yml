@@ -1,0 +1,52 @@
+# Continuous integration: every push / pull request runs the backend tests
+# and the frontend unit tests + production build. Deploys (Render/Vercel)
+# can be set to wait for this check to pass.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  backend:
+    name: Backend (Java 21, Maven)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+          cache-dependency-path: backend/pom.xml
+      # Tests use the in-memory H2 database and mocked Grok - no secrets needed
+      - name: Run tests and build the jar
+        run: mvn -B verify
+
+  frontend:
+    name: Frontend (Node, Vite)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      # Use "npm ci" instead once package-lock.json is committed
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+      - name: Unit tests
+        run: npm test
+      - name: Production build
+        run: npm run build
+        env:
+          VITE_API_BASE_URL: https://example.invalid/api

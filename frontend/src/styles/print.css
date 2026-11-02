@@ -1,0 +1,36 @@
+/* =====================================================================
+   Printing / PDF export.
+
+   How it works:
+   - <PrintableResume> renders a full-size copy of the resume into
+     <div class="print-portal"> directly under <body> (outside #root),
+     and adds the class "has-printable-resume" to <body> while mounted.
+   - On screen the portal is hidden.
+   - When printing, EVERYTHING else under <body> is hidden (the app,
+     modals, toasts), so the PDF contains only the resume.
+   ===================================================================== */
+.print-portal {
+  display: none;
+}
+
+@media print {
+  /* A4, no page margins: the resume template provides its own padding.
+     With zero margins Chrome also has no room to print date/URL headers. */
+  @page {
+    size: A4;
+    margin: 0;
+  }
+
+  body.has-printable-resume {
+    margin: 0;
+    background: #ffffff !important;
+  }
+
+  body.has-printable-resume > *:not(.print-portal) {
+    display: none !important;
+  }
+
+  body.has-printable-resume > .print-portal {
+    display: block !important;
+  }
+}

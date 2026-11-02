@@ -1,0 +1,19 @@
+# Used ONLY by automated tests (mvn test). Runs against an in-memory H2
+# database so tests don't need MySQL. The JWT secret below is a throwaway
+# test value - it is never used outside tests.
+spring:
+  datasource:
+    url: jdbc:h2:mem:careercraft_test;MODE=MySQL;DB_CLOSE_DELAY=-1
+    username: sa
+    password:
+    driver-class-name: org.h2.Driver
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+
+app:
+  jwt:
+    secret: dGVzdC1vbmx5LXNlY3JldC1rZXktZm9yLWNhcmVlcmNyYWZ0LWF1dGgtdGVzdHMtMTIzNDU2Nzg5MA==
+    expiration-ms: 3600000
+  cors:
+    allowed-origins: http://localhost:5173

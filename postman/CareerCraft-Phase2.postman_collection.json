@@ -1,0 +1,260 @@
+{
+  "info": {
+    "name": "CareerCraft - Phase 2 (Profile)",
+    "description": "Run in order. Step 1 logs in and saves {{token}}. Uses the account created in Phase 1 (asha@example.com / secret123) - change the login body if you used different details. Step 10 needs you to pick an image file in the Body tab.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:8080/api" },
+    { "key": "token", "value": "" },
+    { "key": "educationId", "value": "" },
+    { "key": "avatarPath", "value": "" }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+  },
+  "item": [
+    {
+      "name": "1. Login (saves token)",
+      "auth": { "type": "noauth" },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+              "pm.collectionVariables.set('token', pm.response.json().accessToken);"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": "{{baseUrl}}/auth/login",
+        "body": { "mode": "raw", "raw": "{\n  \"email\": \"asha@example.com\",\n  \"password\": \"secret123\"\n}" }
+      }
+    },
+    {
+      "name": "2. Get my profile (200)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+              "pm.test('Has completion', () => pm.expect(pm.response.json().completion.percentage).to.be.a('number'));"
+            ]
+          }
+        }
+      ],
+      "request": { "method": "GET", "url": "{{baseUrl}}/profile" }
+    },
+    {
+      "name": "3. Get profile WITHOUT token (401)",
+      "auth": { "type": "noauth" },
+      "event": [
+        { "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('Status is 401', () => pm.response.to.have.status(401));"] } }
+      ],
+      "request": { "method": "GET", "url": "{{baseUrl}}/profile" }
+    },
+    {
+      "name": "4. Update personal info (200)",
+      "event": [
+        { "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('Status is 200', () => pm.response.to.have.status(200));"] } }
+      ],
+      "request": {
+        "method": "PUT",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": "{{baseUrl}}/profile/personal",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"fullName\": \"Asha Verma\",\n  \"headline\": \"Final-year CS student | Aspiring full-stack developer\",\n  \"phone\": \"+91 98765 43210\",\n  \"location\": \"Mumbai, India\",\n  \"about\": \"I enjoy building web apps with React and Spring Boot.\",\n  \"linkedinUrl\": \"https://linkedin.com/in/asha-verma\",\n  \"githubUrl\": \"https://github.com/ashaverma\",\n  \"websiteUrl\": \"\"\n}"
+        }
+      }
+    },
+    {
+      "name": "5. Update personal info INVALID (400)",
+      "event": [
+        { "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('Status is 400', () => pm.response.to.have.status(400));"] } }
+      ],
+      "request": {
+        "method": "PUT",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": "{{baseUrl}}/profile/personal",
+        "body": { "mode": "raw", "raw": "{\n  \"fullName\": \"\",\n  \"linkedinUrl\": \"linkedin.com/in/asha\"\n}" }
+      }
+    },
+    {
+      "name": "6. Add education (201, saves id)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status is 201', () => pm.response.to.have.status(201));",
+              "const edu = pm.response.json().education;",
+              "pm.collectionVariables.set('educationId', edu[0].id);"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": "{{baseUrl}}/profile/education",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"institution\": \"University of Mumbai\",\n  \"degree\": \"B.E.\",\n  \"fieldOfStudy\": \"Computer Engineering\",\n  \"startDate\": \"2022-08-01\",\n  \"endDate\": null,\n  \"currentlyStudying\": true,\n  \"grade\": \"8.7 CGPA\",\n  \"description\": \"Coursework: DSA, DBMS, Operating Systems\"\n}"
+        }
+      }
+    },
+    {
+      "name": "7. Update education (200)",
+      "event": [
+        { "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('Status is 200', () => pm.response.to.have.status(200));"] } }
+      ],
+      "request": {
+        "method": "PUT",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": "{{baseUrl}}/profile/education/{{educationId}}",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"institution\": \"University of Mumbai\",\n  \"degree\": \"B.E.\",\n  \"fieldOfStudy\": \"Computer Engineering\",\n  \"startDate\": \"2022-08-01\",\n  \"endDate\": \"2026-05-01\",\n  \"currentlyStudying\": false,\n  \"grade\": \"8.9 CGPA\"\n}"
+        }
+      }
+    },
+    {
+      "name": "8. Add experience with end before start (400)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status is 400', () => pm.response.to.have.status(400));",
+              "pm.test('endDate field error', () => pm.expect(pm.response.json().fieldErrors).to.have.property('endDate'));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": "{{baseUrl}}/profile/experience",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"jobTitle\": \"Intern\",\n  \"company\": \"Acme\",\n  \"startDate\": \"2025-06-01\",\n  \"endDate\": \"2025-01-01\",\n  \"currentlyWorking\": false\n}"
+        }
+      }
+    },
+    {
+      "name": "9. Add experience (201)",
+      "event": [
+        { "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('Status is 201', () => pm.response.to.have.status(201));"] } }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": "{{baseUrl}}/profile/experience",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"jobTitle\": \"Software Engineering Intern\",\n  \"company\": \"Acme Technologies\",\n  \"employmentType\": \"Internship\",\n  \"location\": \"Pune\",\n  \"startDate\": \"2025-06-01\",\n  \"endDate\": \"2025-08-01\",\n  \"currentlyWorking\": false,\n  \"description\": \"Built REST APIs with Spring Boot\\nImproved page load time by 30%\"\n}"
+        }
+      }
+    },
+    {
+      "name": "10. Upload profile picture (200) - pick a file!",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+              "pm.collectionVariables.set('avatarPath', pm.response.json().personal.avatarPath);"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/profile/picture",
+        "body": {
+          "mode": "formdata",
+          "formdata": [{ "key": "file", "type": "file", "src": [] }]
+        }
+      }
+    },
+    {
+      "name": "11. Get avatar publicly (200, no token)",
+      "auth": { "type": "noauth" },
+      "request": { "method": "GET", "url": "{{baseUrl}}{{avatarPath}}" }
+    },
+    {
+      "name": "12. Replace skills (200)",
+      "event": [
+        { "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('Status is 200', () => pm.response.to.have.status(200));"] } }
+      ],
+      "request": {
+        "method": "PUT",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": "{{baseUrl}}/profile/skills",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"skills\": [\n    { \"name\": \"React\", \"level\": \"ADVANCED\" },\n    { \"name\": \"Java\", \"level\": \"ADVANCED\" },\n    { \"name\": \"Spring Boot\", \"level\": \"INTERMEDIATE\" },\n    { \"name\": \"MySQL\", \"level\": \"INTERMEDIATE\" }\n  ]\n}"
+        }
+      }
+    },
+    {
+      "name": "13. Add certification (201)",
+      "event": [
+        { "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('Status is 201', () => pm.response.to.have.status(201));"] } }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": "{{baseUrl}}/profile/certifications",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"AWS Certified Cloud Practitioner\",\n  \"issuer\": \"Amazon Web Services\",\n  \"issueDate\": \"2025-03-01\",\n  \"expiryDate\": \"2028-03-01\",\n  \"credentialId\": \"ABC-123\",\n  \"credentialUrl\": \"https://example.com/verify/ABC-123\"\n}"
+        }
+      }
+    },
+    {
+      "name": "14. Get profile - check completion (200)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const c = pm.response.json().completion;",
+              "console.log('Completion:', c.percentage + '%');",
+              "pm.test('Completion is 100 if you uploaded a picture', () => pm.expect(c.percentage).to.be.at.least(90));"
+            ]
+          }
+        }
+      ],
+      "request": { "method": "GET", "url": "{{baseUrl}}/profile" }
+    },
+    {
+      "name": "15. Delete education (200)",
+      "event": [
+        { "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('Status is 200', () => pm.response.to.have.status(200));"] } }
+      ],
+      "request": { "method": "DELETE", "url": "{{baseUrl}}/profile/education/{{educationId}}" }
+    },
+    {
+      "name": "16. Delete same education again (404)",
+      "event": [
+        { "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('Status is 404', () => pm.response.to.have.status(404));"] } }
+      ],
+      "request": { "method": "DELETE", "url": "{{baseUrl}}/profile/education/{{educationId}}" }
+    }
+  ]
+}

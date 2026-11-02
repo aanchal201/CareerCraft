@@ -1,0 +1,31 @@
+.not-found {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3);
+  padding: var(--space-6);
+  text-align: center;
+}
+
+.not-found__code {
+  margin-top: var(--space-8);
+  font-size: 4rem;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.04em;
+  color: var(--color-primary);
+}
+
+.not-found h1 {
+  font-size: var(--text-xl);
+}
+
+.not-found__text {
+  color: var(--color-text-secondary);
+}
+
+.not-found__link {
+  margin-top: var(--space-4);
+}

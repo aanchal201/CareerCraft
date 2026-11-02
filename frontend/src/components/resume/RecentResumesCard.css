@@ -1,0 +1,85 @@
+.recent-resumes__all {
+  font-size: var(--text-sm);
+}
+
+.recent-resumes__note {
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+}
+
+.recent-resumes__loading {
+  display: grid;
+  place-items: center;
+  padding: var(--space-6);
+  color: var(--color-primary);
+}
+
+.recent-resumes__list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding: 0;
+  list-style: none;
+}
+
+.recent-resumes__item,
+.recent-resumes__empty {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  margin: 0 calc(var(--space-3) * -1);
+  border-radius: var(--radius-md);
+  color: var(--color-text);
+  font-weight: 500;
+}
+
+.recent-resumes__item:hover,
+.recent-resumes__empty:hover {
+  background: var(--color-surface-muted);
+  color: var(--color-text);
+  text-decoration: none;
+}
+
+.recent-resumes__icon {
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border-radius: var(--radius-md);
+  background: var(--color-surface-muted);
+  border: 1px solid var(--color-border);
+}
+
+.recent-resumes__text {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.recent-resumes__text strong,
+.recent-resumes__empty strong {
+  overflow: hidden;
+  font-size: var(--text-sm);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.recent-resumes__text small,
+.recent-resumes__empty small {
+  display: block;
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+}
+
+.recent-resumes__arrow {
+  color: var(--color-text-muted);
+}
+
+.recent-resumes__empty {
+  margin: 0;
+  border: 1.5px dashed var(--color-border-strong);
+  color: var(--color-primary);
+}

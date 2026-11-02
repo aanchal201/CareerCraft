@@ -1,0 +1,444 @@
+{
+  "info": {
+    "name": "CareerCraft - Phase 7 (AI Portfolio Generator & Publishing)",
+    "description": "Run in order. Needs at least one resume. Requests 5-6 call Grok (use quota) and return 503 if GROK_API_KEY isn't set. {{resumeId}}, {{portfolioId}} and {{slug}} are saved automatically.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080/api"
+    },
+    {
+      "key": "token",
+      "value": ""
+    },
+    {
+      "key": "resumeId",
+      "value": ""
+    },
+    {
+      "key": "portfolioId",
+      "value": ""
+    },
+    {
+      "key": "slug",
+      "value": ""
+    }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "item": [
+    {
+      "name": "1. Login (saves token)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/auth/login",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"asha@example.com\",\n  \"password\": \"secret123\"\n}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+              "pm.collectionVariables.set('token', pm.response.json().accessToken);"
+            ]
+          }
+        }
+      ],
+      "auth": {
+        "type": "noauth"
+      }
+    },
+    {
+      "name": "2. List resumes (saves first resumeId)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/resumes"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+              "const list = pm.response.json();",
+              "pm.test('You have at least one resume (create one in the app first)', () => pm.expect(list.length).to.be.above(0));",
+              "if (list.length) pm.collectionVariables.set('resumeId', list[0].id);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. AI status",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/portfolios/ai/status"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+              "pm.test('Has quota fields', () => pm.expect(pm.response.json()).to.have.keys('aiConfigured','dailyLimit','remainingToday'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "4. Generate portfolio from resume - no AI (201)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/portfolios/generate",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"From my resume\",\n  \"templateId\": \"bold\",\n  \"resumeId\": {{resumeId}},\n  \"useAi\": false\n}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status is 201', () => pm.response.to.have.status(201));",
+              "const body = pm.response.json();",
+              "pm.test('Not published yet', () => pm.expect(body.publishing.published).to.eql(false));",
+              "pm.collectionVariables.set('portfolioId', body.id);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "5. Generate with AI (201, or 503 without GROK_API_KEY)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/portfolios/generate",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"AI portfolio\",\n  \"templateId\": \"minimal\",\n  \"resumeId\": {{resumeId}},\n  \"useAi\": true,\n  \"tone\": \"FRIENDLY\"\n}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('201 or 503', () => pm.expect([201, 503]).to.include(pm.response.code));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "6. Write with AI - suggestions only (200 / 503)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/portfolios/{{portfolioId}}/ai/write",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"tone\": \"PROFESSIONAL\"\n}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('200 or 503', () => pm.expect([200, 503]).to.include(pm.response.code));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "7. Suggest an address",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/portfolios/{{portfolioId}}/slug"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+              "const body = pm.response.json();",
+              "pm.collectionVariables.set('slug', body.slug + '-' + Math.floor(Math.random() * 1000));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "8. Check a reserved address (available=false)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/portfolios/{{portfolioId}}/slug?value=admin"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Not available', () => pm.expect(pm.response.json().available).to.eql(false));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "9. Publish with invalid address (400)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/portfolios/{{portfolioId}}/publish",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"slug\": \"a--b\"\n}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status is 400', () => pm.response.to.have.status(400));",
+              "pm.test('slug field error', () => pm.expect(pm.response.json().fieldErrors).to.have.property('slug'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "10. Publish (200)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/portfolios/{{portfolioId}}/publish",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"slug\": \"{{slug}}\"\n}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+              "pm.test('Published', () => pm.expect(pm.response.json().publishing.published).to.eql(true));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "11. Public page - no token (200)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/public/portfolios/{{slug}}"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+              "pm.test('No private fields', () => pm.expect(pm.response.json()).to.not.have.property('id'));"
+            ]
+          }
+        }
+      ],
+      "auth": {
+        "type": "noauth"
+      }
+    },
+    {
+      "name": "12. Edit the draft -> hasUnpublishedChanges=true",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/portfolios/{{portfolioId}}",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"From my resume\",\n  \"templateId\": \"bold\",\n  \"design\": {},\n  \"content\": {\n    \"hero\": {\n      \"name\": \"Asha Verma\",\n      \"headline\": \"Edited headline (not live yet)\"\n    }\n  }\n}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+              "pm.test('Unpublished changes', () => pm.expect(pm.response.json().publishing.hasUnpublishedChanges).to.eql(true));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "13. Public page still shows the old version",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/public/portfolios/{{slug}}"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Old headline', () => pm.expect(pm.response.json().content.hero.headline).to.not.eql('Edited headline (not live yet)'));"
+            ]
+          }
+        }
+      ],
+      "auth": {
+        "type": "noauth"
+      }
+    },
+    {
+      "name": "14. Republish (200)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/portfolios/{{portfolioId}}/publish",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"slug\": \"{{slug}}\"\n}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Up to date', () => pm.expect(pm.response.json().publishing.hasUnpublishedChanges).to.eql(false));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "15. Unpublish (200)",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "url": "{{baseUrl}}/portfolios/{{portfolioId}}/unpublish"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+              "pm.test('Draft again', () => pm.expect(pm.response.json().publishing.published).to.eql(false));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "16. Public page after unpublish (404)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/public/portfolios/{{slug}}"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status is 404', () => pm.response.to.have.status(404));"
+            ]
+          }
+        }
+      ],
+      "auth": {
+        "type": "noauth"
+      }
+    }
+  ]
+}

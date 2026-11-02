@@ -1,0 +1,113 @@
+{
+  "info": {
+    "name": "CareerCraft - Phase 5 (AI Resume Analyzer)",
+    "description": "Run in order. Step 1 logs in. Steps 4 and 5 call the real Grok API (needs GROK_API_KEY on the backend and costs a little). For step 4, pick a resume PDF in the Body tab. For step 5, set {{resumeId}} to one of your saved resume ids (from GET /api/resumes).",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:8080/api" },
+    { "key": "token", "value": "" },
+    { "key": "resumeId", "value": "1" },
+    { "key": "analysisId", "value": "" }
+  ],
+  "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }] },
+  "item": [
+    {
+      "name": "1. Login (saves token)",
+      "auth": { "type": "noauth" },
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+        "pm.collectionVariables.set('token', pm.response.json().accessToken);"
+      ] } }],
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": "{{baseUrl}}/auth/login",
+        "body": { "mode": "raw", "raw": "{\n  \"email\": \"asha@example.com\",\n  \"password\": \"secret123\"\n}" }
+      }
+    },
+    {
+      "name": "2. AI status (200)",
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+        "console.log('AI configured:', pm.response.json().aiConfigured, '- remaining today:', pm.response.json().remainingToday);"
+      ] } }],
+      "request": { "method": "GET", "url": "{{baseUrl}}/analyses/status" }
+    },
+    {
+      "name": "3. Analyze with no resume (400)",
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "pm.test('Status is 400', () => pm.response.to.have.status(400));"
+      ] } }],
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/analyses",
+        "body": { "mode": "formdata", "formdata": [{ "key": "jobDescription", "value": "", "type": "text" }] }
+      }
+    },
+    {
+      "name": "4. Analyze uploaded PDF + job description (201) - pick a file!",
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "pm.test('Status is 201', () => pm.response.to.have.status(201));",
+        "const body = pm.response.json();",
+        "pm.test('Has ATS score', () => pm.expect(body.atsScore).to.be.within(0, 100));",
+        "pm.test('Has job match', () => pm.expect(body.matchScore).to.be.a('number'));",
+        "pm.collectionVariables.set('analysisId', body.id);"
+      ] } }],
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/analyses",
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            { "key": "file", "type": "file", "src": [] },
+            { "key": "jobDescription", "type": "text", "value": "We are hiring a Frontend Developer to build and maintain React applications. Requirements: 1+ years with React and JavaScript/TypeScript, REST API integration, unit testing with Jest or React Testing Library, Git. Nice to have: Next.js, accessibility (WCAG), performance optimization." }
+          ]
+        }
+      }
+    },
+    {
+      "name": "5. Analyze a saved resume (201)",
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "pm.test('Status is 201', () => pm.response.to.have.status(201));",
+        "pm.test('Source is saved resume', () => pm.expect(pm.response.json().sourceType).to.eql('SAVED_RESUME'));"
+      ] } }],
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/analyses",
+        "body": { "mode": "formdata", "formdata": [{ "key": "resumeId", "value": "{{resumeId}}", "type": "text" }] }
+      }
+    },
+    {
+      "name": "6. History (200)",
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+        "pm.test('Is an array', () => pm.expect(pm.response.json()).to.be.an('array'));"
+      ] } }],
+      "request": { "method": "GET", "url": "{{baseUrl}}/analyses" }
+    },
+    {
+      "name": "7. Get analysis (200)",
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+        "pm.test('Has improvements', () => pm.expect(pm.response.json().ai.improvements).to.be.an('array'));"
+      ] } }],
+      "request": { "method": "GET", "url": "{{baseUrl}}/analyses/{{analysisId}}" }
+    },
+    {
+      "name": "8. Delete analysis (204)",
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "pm.test('Status is 204', () => pm.response.to.have.status(204));"
+      ] } }],
+      "request": { "method": "DELETE", "url": "{{baseUrl}}/analyses/{{analysisId}}" }
+    },
+    {
+      "name": "9. Analyses without token (401)",
+      "auth": { "type": "noauth" },
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "pm.test('Status is 401', () => pm.response.to.have.status(401));"
+      ] } }],
+      "request": { "method": "GET", "url": "{{baseUrl}}/analyses" }
+    }
+  ]
+}

@@ -1,0 +1,137 @@
+{
+  "info": {
+    "name": "CareerCraft - Phase 3 (Resumes)",
+    "description": "Run in order. Step 1 logs in and saves {{token}} (edit the body if your account differs). Steps save {{resumeId}} and {{copyId}} automatically.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:8080/api" },
+    { "key": "token", "value": "" },
+    { "key": "resumeId", "value": "" },
+    { "key": "copyId", "value": "" }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+  },
+  "item": [
+    {
+      "name": "1. Login (saves token)",
+      "auth": { "type": "noauth" },
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+        "pm.collectionVariables.set('token', pm.response.json().accessToken);"
+      ] } }],
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": "{{baseUrl}}/auth/login",
+        "body": { "mode": "raw", "raw": "{\n  \"email\": \"asha@example.com\",\n  \"password\": \"secret123\"\n}" }
+      }
+    },
+    {
+      "name": "2. Create resume from profile (201)",
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "pm.test('Status is 201', () => pm.response.to.have.status(201));",
+        "const body = pm.response.json();",
+        "pm.test('Has 8 sections', () => pm.expect(body.content.sections.length).to.eql(8));",
+        "pm.collectionVariables.set('resumeId', body.id);"
+      ] } }],
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": "{{baseUrl}}/resumes",
+        "body": { "mode": "raw", "raw": "{\n  \"title\": \"Frontend Developer\",\n  \"templateId\": \"modern\",\n  \"prefillFromProfile\": true\n}" }
+      }
+    },
+    {
+      "name": "3. Create with unknown template (400)",
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "pm.test('Status is 400', () => pm.response.to.have.status(400));",
+        "pm.test('templateId error', () => pm.expect(pm.response.json().fieldErrors).to.have.property('templateId'));"
+      ] } }],
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": "{{baseUrl}}/resumes",
+        "body": { "mode": "raw", "raw": "{\n  \"title\": \"Test\",\n  \"templateId\": \"fancy\",\n  \"prefillFromProfile\": false\n}" }
+      }
+    },
+    {
+      "name": "4. List resumes (200)",
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+        "pm.test('Is an array', () => pm.expect(pm.response.json()).to.be.an('array'));"
+      ] } }],
+      "request": { "method": "GET", "url": "{{baseUrl}}/resumes" }
+    },
+    {
+      "name": "5. Get resume (200)",
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "pm.test('Status is 200', () => pm.response.to.have.status(200));"
+      ] } }],
+      "request": { "method": "GET", "url": "{{baseUrl}}/resumes/{{resumeId}}" }
+    },
+    {
+      "name": "6. Update resume (200)",
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+        "const c = pm.response.json().content;",
+        "pm.test('Projects saved', () => pm.expect(c.projects[0].name).to.eql('CareerCraft'));",
+        "pm.test('Sections normalized to 8', () => pm.expect(c.sections.length).to.eql(8));"
+      ] } }],
+      "request": {
+        "method": "PUT",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": "{{baseUrl}}/resumes/{{resumeId}}",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"title\": \"Frontend Developer – Startups\",\n  \"templateId\": \"classic\",\n  \"accentColor\": \"#1e3a8a\",\n  \"content\": {\n    \"personal\": {\n      \"fullName\": \"Asha Verma\",\n      \"jobTitle\": \"Frontend Developer\",\n      \"email\": \"asha@example.com\",\n      \"linkedin\": \"https://linkedin.com/in/asha-verma\"\n    },\n    \"summary\": \"Frontend developer who loves building accessible, fast React apps.\",\n    \"projects\": [\n      {\n        \"name\": \"CareerCraft\",\n        \"technologies\": \"React, Spring Boot, MySQL\",\n        \"link\": \"https://github.com/ashaverma/careercraft\",\n        \"description\": \"Resume builder with live preview\\nJWT authentication\"\n      }\n    ],\n    \"languages\": [\n      { \"name\": \"English\", \"proficiency\": \"Fluent\" }\n    ],\n    \"sections\": [\n      { \"key\": \"summary\", \"title\": \"About Me\", \"visible\": true },\n      { \"key\": \"projects\", \"title\": \"Projects\", \"visible\": true },\n      { \"key\": \"achievements\", \"title\": \"Achievements\", \"visible\": false }\n    ]\n  }\n}"
+        }
+      }
+    },
+    {
+      "name": "7. Update with invalid date & color (400)",
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "pm.test('Status is 400', () => pm.response.to.have.status(400));"
+      ] } }],
+      "request": {
+        "method": "PUT",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": "{{baseUrl}}/resumes/{{resumeId}}",
+        "body": { "mode": "raw", "raw": "{\n  \"title\": \"X\",\n  \"templateId\": \"classic\",\n  \"accentColor\": \"blue\",\n  \"content\": { \"experience\": [ { \"startDate\": \"June 2024\" } ] }\n}" }
+      }
+    },
+    {
+      "name": "8. Duplicate resume (201)",
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "pm.test('Status is 201', () => pm.response.to.have.status(201));",
+        "pm.test('Title ends with (copy)', () => pm.expect(pm.response.json().title).to.match(/\\(copy\\)$/));",
+        "pm.collectionVariables.set('copyId', pm.response.json().id);"
+      ] } }],
+      "request": { "method": "POST", "url": "{{baseUrl}}/resumes/{{resumeId}}/duplicate" }
+    },
+    {
+      "name": "9. Delete the copy (204)",
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "pm.test('Status is 204', () => pm.response.to.have.status(204));"
+      ] } }],
+      "request": { "method": "DELETE", "url": "{{baseUrl}}/resumes/{{copyId}}" }
+    },
+    {
+      "name": "10. Get the deleted copy (404)",
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "pm.test('Status is 404', () => pm.response.to.have.status(404));"
+      ] } }],
+      "request": { "method": "GET", "url": "{{baseUrl}}/resumes/{{copyId}}" }
+    },
+    {
+      "name": "11. List without token (401)",
+      "auth": { "type": "noauth" },
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "pm.test('Status is 401', () => pm.response.to.have.status(401));"
+      ] } }],
+      "request": { "method": "GET", "url": "{{baseUrl}}/resumes" }
+    }
+  ]
+}

@@ -1,0 +1,100 @@
+# =====================================================================
+# CareerCraft backend configuration
+# Every secret/environment-specific value comes from an environment
+# variable. For local development those variables are read from the
+# `.env` file in the backend folder (see .env.example).
+# =====================================================================
+spring:
+  application:
+    name: careercraft-backend
+
+  # Load KEY=value pairs from ./.env if the file exists (local dev only).
+  # On Render/Railway you set real environment variables instead.
+  config:
+    import: optional:file:.env[.properties]
+
+  datasource:
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    hikari:
+      # Small pool: free/hobby MySQL plans allow only a few connections.
+      maximum-pool-size: ${DB_POOL_SIZE:5}
+      # Recycle connections before hosted MySQL closes idle ones.
+      max-lifetime: ${DB_MAX_LIFETIME_MS:1500000}
+
+  # File uploads. Overall cap is 5 MB (resume PDFs); each service applies its
+  # own stricter limit too (profile pictures: 2 MB).
+  servlet:
+    multipart:
+      max-file-size: 5MB
+      max-request-size: 6MB
+
+  # Finish in-flight requests before shutting down during a redeploy.
+  lifecycle:
+    timeout-per-shutdown-phase: 20s
+
+  jpa:
+    hibernate:
+      ddl-auto: ${JPA_DDL_AUTO:update}
+    open-in-view: false
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: true
+
+server:
+  port: ${PORT:8080}
+  shutdown: graceful
+  # Behind Render/Railway's proxy, read the real client IP and https scheme
+  # from X-Forwarded-* headers ("native" = Tomcat's RemoteIpValve, which only
+  # trusts headers added by proxies on private networks, so they can't be spoofed).
+  forward-headers-strategy: ${FORWARD_HEADERS_STRATEGY:native}
+  tomcat:
+    remoteip:
+      # Which header holds the client IP. Render sits behind Cloudflare, so set
+      # REMOTE_IP_HEADER=cf-connecting-ip there (Cloudflare always overwrites it,
+      # so visitors can't fake it). Elsewhere the standard X-Forwarded-For works.
+      remote-ip-header: ${REMOTE_IP_HEADER:x-forwarded-for}
+  compression:
+    enabled: true
+    mime-types: application/json
+    min-response-size: 2KB
+  error:
+    include-message: never
+    include-stacktrace: never
+
+# ---------------- Application-specific settings ----------------
+app:
+  jwt:
+    secret: ${JWT_SECRET}
+    expiration-ms: ${JWT_EXPIRATION_MS:86400000}
+  cors:
+    allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:5173}
+  security:
+    login:
+      # wrong passwords allowed per email + IP before a temporary block (429)
+      max-failures: ${LOGIN_MAX_FAILURES:5}
+      # wrong passwords allowed per IP (any account) in the same window
+      max-failures-per-ip: ${LOGIN_MAX_FAILURES_PER_IP:50}
+      window-minutes: ${LOGIN_WINDOW_MINUTES:15}
+    register:
+      # new accounts per IP per hour (raise it for a classroom/office behind one IP)
+      max-per-hour: ${REGISTER_MAX_PER_HOUR:20}
+  ai:
+    # Max AI analyses per user per day (protects your API budget)
+    daily-limit: ${AI_DAILY_LIMIT:20}
+    # Max AI portfolio requests (generate + "write with AI") per user per day
+    portfolio-daily-limit: ${AI_PORTFOLIO_DAILY_LIMIT:10}
+    grok:
+      # Read only on the server - never sent to the browser.
+      api-key: ${GROK_API_KEY:}
+      base-url: ${GROK_BASE_URL:https://api.x.ai/v1}
+      model: ${GROK_MODEL:grok-4.7}
+      # low | medium | high | xhigh  (low = faster and cheaper; leave empty for the model default)
+      reasoning-effort: ${GROK_REASONING_EFFORT:low}
+      timeout-seconds: ${GROK_TIMEOUT_SECONDS:90}
+
+logging:
+  level:
+    com.careercraft: INFO

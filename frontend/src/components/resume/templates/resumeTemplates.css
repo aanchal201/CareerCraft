@@ -1,0 +1,430 @@
+/* =====================================================================
+   Resume templates.
+   The page is a fixed A4 size (794 x 1123 CSS px). Sizes are in px so the
+   preview looks exactly like the printed page. These styles are isolated
+   under .resume so the app's design system doesn't leak in.
+   ===================================================================== */
+.resume {
+  --resume-accent: #0f766e;
+  --rs-text: #1f2328;
+  --rs-muted: #5b636b;
+  --rs-rule: #d9dde1;
+  --rs-tint: color-mix(in srgb, var(--resume-accent) 9%, #ffffff);
+
+  box-sizing: border-box;
+  width: 794px;
+  min-height: 1123px;
+  padding: 52px 56px;
+  background: #ffffff;
+  color: var(--rs-text);
+  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  font-size: 13px;
+  line-height: 1.45;
+  text-align: left;
+  overflow-wrap: anywhere;
+  -webkit-font-smoothing: antialiased;
+}
+
+.resume *,
+.resume *::before,
+.resume *::after {
+  box-sizing: border-box;
+  margin: 0;
+}
+
+.resume h1,
+.resume h2 {
+  color: inherit;
+  letter-spacing: normal;
+  line-height: 1.2;
+}
+
+.resume svg {
+  display: inline-block;
+}
+
+/* ---------------- Shared section markup (rs-*) ---------------- */
+.rs-section {
+  margin-top: 18px;
+}
+
+.rs-section__title {
+  break-after: avoid; /* never leave a heading alone at the bottom of a page */
+  margin-bottom: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--resume-accent);
+}
+
+/* keep each job / degree / project together on one page */
+.rs-item,
+.rt-header,
+.rs-section--summary {
+  break-inside: avoid;
+}
+
+.rs-item + .rs-item {
+  margin-top: 11px;
+}
+
+.rs-item--compact + .rs-item--compact {
+  margin-top: 6px;
+}
+
+.rs-item__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.rs-item__titles {
+  min-width: 0;
+}
+
+.rs-item__title {
+  font-size: 13.5px;
+  font-weight: 700;
+}
+
+.rs-item__subtitle {
+  font-weight: 500;
+  color: var(--rs-muted);
+}
+
+.rs-item__aside {
+  flex-shrink: 0;
+  text-align: right;
+}
+
+.rs-item__date {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--rs-muted);
+  white-space: nowrap;
+}
+
+.rs-item__meta {
+  font-size: 12px;
+  color: var(--rs-muted);
+}
+
+.rs-text {
+  margin-top: 4px;
+}
+
+.rs-section--summary .rs-text {
+  margin-top: 0;
+}
+
+.rs-bullets {
+  margin-top: 4px;
+  padding-left: 16px;
+}
+
+.rs-bullets li + li {
+  margin-top: 2px;
+}
+
+.rs-bullets li::marker {
+  color: var(--resume-accent);
+}
+
+.rs-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 0;
+  list-style: none;
+}
+
+.rs-tags li {
+  padding: 2px 9px;
+  border-radius: 4px;
+  background: var(--rs-tint);
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.rs-languages {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 20px;
+  padding: 0;
+  list-style: none;
+}
+
+.rs-languages__name {
+  font-weight: 600;
+}
+
+.rs-languages__level {
+  margin-left: 6px;
+  color: var(--rs-muted);
+}
+
+.rs-skill-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 0;
+  list-style: none;
+}
+
+.rs-skill-bars li {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.rs-skill-bars__track {
+  display: block;
+  height: 4px;
+  border-radius: 2px;
+  background: color-mix(in srgb, var(--resume-accent) 20%, #ffffff);
+  overflow: hidden;
+}
+
+.rs-skill-bars__track span {
+  display: block;
+  height: 100%;
+  background: var(--resume-accent);
+}
+
+/* =====================================================================
+   CLASSIC
+   ===================================================================== */
+.resume--classic {
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 13.5px;
+}
+
+.resume--classic .rt-header {
+  padding-bottom: 14px;
+  border-bottom: 2px solid var(--resume-accent);
+  text-align: center;
+}
+
+.resume--classic .rt-name {
+  font-size: 30px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.resume--classic .rt-job-title {
+  margin-top: 4px;
+  font-size: 15px;
+  font-style: italic;
+  color: var(--resume-accent);
+}
+
+.resume--classic .rt-contacts {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-top: 8px;
+  font-size: 12px;
+  color: var(--rs-muted);
+}
+
+.resume--classic .rt-contacts span + span::before {
+  content: '·';
+  margin: 0 8px;
+}
+
+.resume--classic .rs-section__title {
+  padding-bottom: 3px;
+  border-bottom: 1px solid var(--rs-rule);
+  font-size: 13px;
+  /* wider spacing makes PDF text extractors read "E D U C A T I O N",
+     which hurts applicant tracking systems */
+  letter-spacing: 0.07em;
+}
+
+.resume--classic .rs-item__date {
+  font-style: italic;
+  font-weight: 400;
+}
+
+.resume--classic .rs-tags {
+  gap: 0 4px;
+}
+
+.resume--classic .rs-tags li {
+  padding: 0;
+  background: none;
+  font-size: 13.5px;
+  font-weight: 400;
+}
+
+.resume--classic .rs-tags li:not(:last-child)::after {
+  content: ',';
+}
+
+/* =====================================================================
+   MODERN
+   ===================================================================== */
+.resume--modern {
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+}
+
+.resume--modern .rt-header {
+  padding: 36px 44px 30px;
+  background: var(--resume-accent);
+  color: #ffffff;
+}
+
+.resume--modern .rt-name {
+  font-size: 30px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+
+.resume--modern .rt-job-title {
+  margin-top: 4px;
+  font-size: 15px;
+  font-weight: 500;
+  opacity: 0.9;
+}
+
+.resume--modern .rt-columns {
+  display: grid;
+  flex: 1;
+  grid-template-columns: 236px 1fr;
+}
+
+.resume--modern .rt-sidebar {
+  padding: 26px 22px 40px;
+  background: var(--rs-tint);
+  font-size: 12px;
+}
+
+.resume--modern .rt-main {
+  padding: 26px 40px 40px 30px;
+}
+
+.resume--modern .rt-sidebar > .rs-section:first-child,
+.resume--modern .rt-main > .rs-section:first-child {
+  margin-top: 0;
+}
+
+.resume--modern .rt-contact-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 0;
+  list-style: none;
+}
+
+.resume--modern .rt-contact-list li {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.resume--modern .rt-contact-list svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+  color: var(--resume-accent);
+}
+
+.resume--modern .rt-sidebar .rs-item__head {
+  flex-direction: column;
+  gap: 0;
+}
+
+.resume--modern .rt-sidebar .rs-item__aside {
+  text-align: left;
+}
+
+.resume--modern .rt-sidebar .rs-item__title {
+  font-size: 12.5px;
+}
+
+.resume--modern .rt-sidebar .rs-languages {
+  flex-direction: column;
+  gap: 4px;
+}
+
+/* =====================================================================
+   MINIMAL
+   ===================================================================== */
+.resume--minimal {
+  padding: 56px 60px;
+}
+
+.resume--minimal .rt-header {
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--rs-rule);
+}
+
+.resume--minimal .rt-name {
+  font-size: 32px;
+  font-weight: 400;
+  letter-spacing: -0.02em;
+}
+
+.resume--minimal .rt-job-title {
+  margin-top: 2px;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--resume-accent);
+}
+
+.resume--minimal .rt-contacts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 18px;
+  margin-top: 10px;
+  font-size: 12px;
+  color: var(--rs-muted);
+}
+
+.resume--minimal .rs-section {
+  display: grid;
+  grid-template-columns: 128px 1fr;
+  gap: 20px;
+  margin-top: 20px;
+}
+
+.resume--minimal .rs-section__title {
+  margin: 2px 0 0;
+  font-size: 11px;
+  letter-spacing: 0.1em;
+}
+
+.resume--minimal .rs-tags li {
+  border: 1px solid var(--rs-rule);
+  background: none;
+}
+
+/* =====================================================================
+   PRINT / PDF
+   ===================================================================== */
+@media print {
+  .resume {
+    /* print colored backgrounds (Modern header, tags, skill bars) */
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+    /* slightly under 297mm so rounding never creates an empty extra page */
+    min-height: 296mm;
+    /* repeat the top/bottom padding on every printed page */
+    -webkit-box-decoration-break: clone;
+    box-decoration-break: clone;
+  }
+
+  .resume--modern .rt-sidebar,
+  .resume--modern .rt-main {
+    -webkit-box-decoration-break: clone;
+    box-decoration-break: clone;
+  }
+
+  .resume a {
+    color: inherit;
+    text-decoration: none;
+  }
+}

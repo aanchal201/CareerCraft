@@ -1,0 +1,9 @@
+# Keep the Docker build context small and never copy secrets into an image
+target/
+.env
+.env.*
+!.env.example
+.idea/
+.vscode/
+*.iml
+*.log
